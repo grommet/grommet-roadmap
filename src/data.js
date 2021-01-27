@@ -7,12 +7,8 @@ const upgrade = (roadmap) => {
   // add empty items if needed
   if (!roadmap.items) roadmap.items = [];
   // convert type to section
-  roadmap.items.forEach((i) => {
-    if (i.type) {
-      i.section = i.type;
-      delete i.type;
-    }
-    if (i.target) {
+  for (let i = 0; i < roadmap.items.length; i++) {
+    if (roadmap.items[i].target) {
       var newItem = {
         name: '',
         section: '',
@@ -21,27 +17,31 @@ const upgrade = (roadmap) => {
         note: '',
         DateTarget0: '',
       };
-      newItem.dateFields[0].date = i.target;
-      newItem.DateTarget0 = i.target;
+      newItem.dateFields[0].date = roadmap.items[i].target;
+      newItem.DateTarget0 = roadmap.items[i].target;
 
-      if (i.name) {
-        newItem.name = i.name;
+      if (roadmap.items[i].name) {
+        newItem.name = roadmap.items[i].name;
       }
-      if (i.section) {
-        newItem.section = i.section;
+      if (roadmap.items[i].section) {
+        newItem.section = roadmap.items[i].section;
       }
-      if (i.label) {
-        newItem.dateFields[0].stage = i.label;
+      if (roadmap.items[i].label) {
+        newItem.dateFields[0].stage = roadmap.items[i].label;
       }
-      if (i.url) {
-        newItem.linkFields[0].linkUrl = i.url;
+      if (roadmap.items[i].url) {
+        newItem.linkFields[0].linkUrl = roadmap.items[i].url;
       }
-      if (i.note) {
-        newItem.note = i.note;
+      if (roadmap.items[i].note) {
+        newItem.note = roadmap.items[i].note;
       }
-
-      roadmap.items.splice(roadmap.items.indexOf(i), 1);
-      roadmap.items.push(newItem);
+      roadmap.items[i] = newItem;
+    }
+  }
+  roadmap.items.forEach((i) => {
+    if (i.type) {
+      i.section = i.type;
+      delete i.type;
     }
   });
   // add sections if not there
