@@ -11,6 +11,7 @@ import {
   Heading,
   Layer,
   Select,
+  TextArea,
   TextInput,
 } from 'grommet';
 import { Close, Down, Up } from 'grommet-icons';
@@ -54,12 +55,7 @@ const RoadmapEdit = ({ roadmap, onChange, onDone }) => {
           ) : (
             <Form value={value} onChange={setValue} onSubmit={() => submit()}>
               <FormField name="name" htmlFor="name" required>
-                <TextInput
-                  name="name"
-                  id="name"
-                  size="large"
-                  placeholder="Name"
-                />
+                <TextInput name="name" id="name" placeholder="Name" />
               </FormField>
               <FormField name="password" htmlFor="password">
                 <TextInput
@@ -79,6 +75,9 @@ const RoadmapEdit = ({ roadmap, onChange, onDone }) => {
                   placeholder="Theme"
                   options={['grommet', 'hpe']}
                 />
+              </FormField>
+              <FormField name="notes" htmlFor="notes" label="Notes">
+                <TextArea name="notes" id="notes" fill />
               </FormField>
               <Box gap="small">
                 <Heading level={3} size="small">

@@ -12,6 +12,37 @@ const upgrade = (roadmap) => {
       i.section = i.type;
       delete i.type;
     }
+    if (i.target) {
+      var newItem = {
+        name: '',
+        section: '',
+        dateFields: [{ date: '', stage: '', progress: '' }],
+        linkFields: [{ linkUrl: '' }],
+        note: '',
+        DateTarget0: '',
+      };
+      newItem.dateFields[0].date = i.target;
+      newItem.DateTarget0 = i.target;
+
+      if (i.name) {
+        newItem.name = i.name;
+      }
+      if (i.section) {
+        newItem.section = i.section;
+      }
+      if (i.label) {
+        newItem.dateFields[0].stage = i.label;
+      }
+      if (i.url) {
+        newItem.linkFields[0].linkUrl = i.url;
+      }
+      if (i.note) {
+        newItem.note = i.note;
+      }
+
+      roadmap.items.splice(roadmap.items.indexOf(i), 1);
+      roadmap.items.push(newItem);
+    }
   });
   // add sections if not there
   if (!roadmap.sections)
