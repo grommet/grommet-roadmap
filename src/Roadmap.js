@@ -11,11 +11,13 @@ import {
   Card,
   CardBody,
   CardFooter,
+  Footer,
   Grid,
   Header,
   Heading,
   Keyboard,
   Markdown,
+  Menu,
   Paragraph,
   ResponsiveContext,
   Stack,
@@ -31,6 +33,7 @@ import {
   Navigate,
   Next,
   Previous,
+  Sun,
 } from 'grommet-icons';
 import { grommet } from 'grommet/themes';
 import { hpe } from 'grommet-theme-hpe';
@@ -60,10 +63,21 @@ const columnPercents = {
   large: '24%',
 };
 
+const firstDate = (dateFields) =>
+  dateFields.map(({ date }) => new Date(date)).sort((d1, d2) => d1 - d2)[0];
+
+const byDate = (i1, i2) => {
+  const d1 = firstDate(i1.dateFields);
+  const d2 = firstDate(i2.dateFields);
+  if (!d1) return -1;
+  if (!d2) return 1;
+  return d1 - d2;
+};
+
 const now = new Date();
 now.setDate(1);
 
-const Roadmap = ({ identifier, onClose }) => {
+const Roadmap = ({ identifier, onClose, onThemeMode }) => {
   const responsive = useContext(ResponsiveContext);
   const [date, setDate] = useState(now);
   const [auth, setAuth] = useState();
@@ -122,13 +136,14 @@ const Roadmap = ({ identifier, onClose }) => {
           name,
           months: months.map((month) => ({
             month,
-            items: monthsItems.filter(({ section, dateFields }) =>
-              dateFields.some(
-                (dateField) =>
-                  name === section && sameMonth(month, dateField.date),
-              ),
-            ),
-            // .sort((i1, i2) => )
+            items: monthsItems
+              .filter(({ section, dateFields }) =>
+                dateFields.some(
+                  (dateField) =>
+                    name === section && sameMonth(month, dateField.date),
+                ),
+              )
+              .sort(byDate),
           })),
         }))
         .filter((s) => s.months.some((m) => m.items.length) && s.name !== '');
@@ -138,9 +153,13 @@ const Roadmap = ({ identifier, onClose }) => {
         result.push({
           months: months.map((month) => ({
             month,
-            items: nonSectionItems.filter(({ dateFields }) =>
-              dateFields.some((dateField) => sameMonth(month, dateField.date)),
-            ),
+            items: nonSectionItems
+              .filter(({ dateFields }) =>
+                dateFields.some((dateField) =>
+                  sameMonth(month, dateField.date),
+                ),
+              )
+              .sort(byDate),
           })),
         });
       }
@@ -437,7 +456,7 @@ const Roadmap = ({ identifier, onClose }) => {
               ))}
             </Row>
           </Box>
-          <Box flex overflow="auto" pad={{ bottom: 'large' }}>
+          <Box flex overflow="auto" pad={{ bottom: 'medium' }}>
             {Object.values(sections).map(({ name, months }) => (
               <Box flex={false} key={name || 'none'}>
                 <Row>
@@ -452,6 +471,17 @@ const Roadmap = ({ identifier, onClose }) => {
                 </Row>
               </Box>
             ))}
+            <Footer justify="end" pad="medium">
+              <Menu
+                title="theme mode"
+                icon={<Sun />}
+                dropAlign={{ bottom: 'top', right: 'right' }}
+                items={['light', 'dark', 'auto'].map((mode) => ({
+                  label: mode,
+                  onClick: () => onThemeMode(mode),
+                }))}
+              />
+            </Footer>
           </Box>
           {itemIndex !== undefined && (
             <ItemEdit

@@ -4,19 +4,16 @@ import { grommet } from 'grommet/themes';
 import Roadmap from './Roadmap';
 import Manage from './Manage';
 
+const browserThemeMode = () =>
+  window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+
 const App = () => {
   const [themeMode, setThemeMode] = useState();
   const [identifier, setIdentifier] = useState();
 
   // align the themeMode with the browser/OS setting
   useEffect(() => {
-    if (window.matchMedia) {
-      setThemeMode(
-        window.matchMedia('(prefers-color-scheme: dark)').matches
-          ? 'dark'
-          : 'light',
-      );
-    }
+    if (window.matchMedia) setThemeMode(browserThemeMode());
   }, []);
 
   // load id from URL, if any
@@ -34,6 +31,9 @@ const App = () => {
             window.history.pushState(undefined, undefined, '/');
             setIdentifier(undefined);
           }}
+          onThemeMode={(mode) =>
+            setThemeMode(mode === 'auto' ? browserThemeMode() : mode)
+          }
         />
       ) : (
         <Manage
