@@ -17,6 +17,7 @@ import {
   Heading,
   Keyboard,
   Markdown,
+  Paragraph,
   ResponsiveContext,
   Text,
   ThemeContext,
@@ -367,58 +368,35 @@ const Roadmap = ({ identifier, onClose }) => {
                               }}
                               elevation="small"
                             >
-                              <Box
-                                fill="horizontal"
-                                align="end"
-                                pad={{
-                                  top: 'xsmall',
-                                  bottom: 'xsmall',
-                                  horizontal: 'medium',
-                                }}
-                              >
-                                {editing ? (
-                                  <Blank />
-                                ) : (
+                              {editing && (
+                                <CardHeader justify="end" pad="none">
                                   <Button
-                                    plain
-                                    icon={<More color="border" />}
+                                    icon={<More />}
                                     onClick={() =>
                                       editing ? undefined : setItemIndex(index)
                                     }
                                   />
-                                )}
-                              </Box>
-                              <Box
+                                </CardHeader>
+                              )}
+                              <CardBody
                                 justify="between"
                                 direction="row"
-                                overflow="scroll"
+                                gap="medium"
                               >
-                                <CardHeader
-                                  wrap={true}
-                                  pad={{
-                                    top: 'none',
-                                    bottom: 'medium',
-                                    horizontal: 'medium',
-                                  }}
-                                  justify="start"
-                                  gap="none"
-                                  align="start"
-                                  direction="column"
-                                >
+                                <Box flex>
                                   <Heading margin="none" size="small" level={4}>
                                     {name}
                                   </Heading>
-                                  <Text size="small">{note}</Text>
-                                </CardHeader>
-                                <CardBody
-                                  flex={false}
-                                  pad={{
-                                    top: 'none',
-                                    bottom: 'medium',
-                                    horizontal: 'medium',
-                                  }}
-                                  gap="small"
-                                >
+                                  {note && (
+                                    <Paragraph
+                                      size="small"
+                                      margin={{ bottom: 'none' }}
+                                    >
+                                      {note}
+                                    </Paragraph>
+                                  )}
+                                </Box>
+                                <Box flex={false} gap="small">
                                   {linkFields.map((linkField, index) => (
                                     <Box key={`iconBox${index}`} align="center">
                                       {linkField.linkUrl &&
@@ -452,8 +430,8 @@ const Roadmap = ({ identifier, onClose }) => {
                                         ))}
                                     </Box>
                                   ))}
-                                </CardBody>
-                              </Box>
+                                </Box>
+                              </CardBody>
                               {dateFields.map((dateField, index) => {
                                 if (sameMonth(month, dateField.date)) {
                                   return (
