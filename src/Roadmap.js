@@ -11,7 +11,6 @@ import {
   Card,
   CardBody,
   CardFooter,
-  CardHeader,
   Grid,
   Header,
   Heading,
@@ -19,6 +18,7 @@ import {
   Markdown,
   Paragraph,
   ResponsiveContext,
+  Stack,
   Text,
   ThemeContext,
 } from 'grommet';
@@ -26,9 +26,7 @@ import {
   Add,
   Blank,
   CircleInformation,
-  Figma,
-  Github,
-  Link,
+  FormDown,
   More,
   Navigate,
   Next,
@@ -42,6 +40,7 @@ import Swipe from './Swipe';
 import ItemEdit from './ItemEdit';
 import RoadmapEdit from './RoadmapEdit';
 import Auth from './Auth';
+import LinkIcon from './LinkIcon';
 
 const themes = {
   hpe: hpe,
@@ -54,10 +53,11 @@ const monthCounts = {
   large: 4,
 };
 
+// allow for gap in Grid
 const columnPercents = {
   small: 'full',
-  medium: '33.33%',
-  large: '25%',
+  medium: '32%',
+  large: '24%',
 };
 
 const now = new Date();
@@ -128,6 +128,7 @@ const Roadmap = ({ identifier, onClose }) => {
                   name === section && sameMonth(month, dateField.date),
               ),
             ),
+            // .sort((i1, i2) => )
           })),
         }))
         .filter((s) => s.months.some((m) => m.items.length) && s.name !== '');
@@ -158,7 +159,7 @@ const Roadmap = ({ identifier, onClose }) => {
         ]}
       >
         <Box />
-        <Grid columns={columnPercents[responsive]} {...props} />
+        <Grid columns={columnPercents[responsive]} gap="small" {...props} />
         <Box />
       </Grid>
     );
@@ -217,12 +218,157 @@ const Roadmap = ({ identifier, onClose }) => {
       </Box>
     );
 
+  const Month = ({ month, items }) => {
+    const onDragEnter = (event) => {
+      if (dragging !== undefined) {
+        event.preventDefault();
+        setDropTarget(month);
+      } else {
+        setDropTarget(undefined);
+      }
+    };
+
+    const onDragOver = (event) => {
+      if (dragging !== undefined) event.preventDefault();
+    };
+
+    return (
+      <Box
+        gap="medium"
+        pad={{ vertical: 'medium', horizontal: 'small' }}
+        background="background-contrast"
+        responsive={false}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDrop={moveItem}
+      >
+        {items.map((item) => (
+          <Item key={item.name} month={month} {...item} />
+        ))}
+      </Box>
+    );
+  }; // Month
+
+  const Item = ({ dateFields, index, linkFields, month, name, note }) => {
+    const labels = [];
+    for (var x in dateFields) {
+      const stage = dateFields[x].stage;
+      labels.push(roadmap.labels.find(({ name }) => name === stage));
+    }
+
+    const onDragStart = (event) => {
+      // for Firefox
+      event.dataTransfer.setData('text/plain', '');
+      setDragging(index);
+      setPrevTarget(month);
+    };
+
+    const onDragEnd = () => {
+      setDragging(undefined);
+      setDropTarget(undefined);
+      setPrevTarget(undefined);
+    };
+
+    let content = (
+      <Card background="background-front" elevation="small">
+        <CardBody justify="between" direction="row" gap="medium" pad="medium">
+          <Box flex>
+            <Heading margin="none" size="small" level={4}>
+              {name}
+            </Heading>
+            {note && (
+              <Paragraph size="small" margin={{ bottom: 'none' }}>
+                {note}
+              </Paragraph>
+            )}
+          </Box>
+          <Box flex={false} gap="small">
+            {linkFields
+              .filter(({ linkUrl }) => linkUrl)
+              .map(({ linkUrl }) => (
+                <Box key={linkUrl} align="center">
+                  <Button
+                    plain
+                    icon={<LinkIcon url={linkUrl} />}
+                    href={linkUrl}
+                  />
+                </Box>
+              ))}
+          </Box>
+        </CardBody>
+        {dateFields
+          .filter((dateField) => sameMonth(month, dateField.date))
+          .map((dateField, index) => (
+            <CardFooter
+              key={dateField.stage}
+              pad={{
+                vertical: 'small',
+                horizontal: 'medium',
+              }}
+              background={(labels[index] && labels[index].color) || ''}
+            >
+              <Text size="small" weight="bold" key={`${index}stage`}>
+                {dateField.stage}
+              </Text>
+              <Text size="small" weight="bold" key={`${index}progress`}>
+                {dateField.progress}
+              </Text>
+            </CardFooter>
+          ))}
+      </Card>
+    );
+    if (editing)
+      content = (
+        <Stack guidingChild="first" interactiveChild="last">
+          {content}
+          <Button
+            fill
+            plain
+            hoverIndicator
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            onClick={() => setItemIndex(index)}
+          >
+            <Box fill align="center" justify="start" pad="xsmall">
+              <More />
+            </Box>
+          </Button>
+        </Stack>
+      );
+    return content;
+  }; // Item
+
+  const Name = () => {
+    let content = (
+      <Heading textAlign="center" size="small" margin="none">
+        {roadmap.name}
+      </Heading>
+    );
+    if (editing)
+      content = (
+        <Button plain hoverIndicator onClick={() => setEditRoadmap(true)}>
+          <Box
+            direction="row"
+            align="center"
+            gap="small"
+            pad={{ horizontal: 'xsmall' }}
+          >
+            <Blank />
+            {content}
+            <FormDown />
+          </Box>
+        </Button>
+      );
+    return content;
+  };
+
   return (
     <ThemeContext.Extend value={themes[roadmap.theme] || themes.grommet}>
       <Keyboard
         target="document"
-        onRight={onNext}
-        onLeft={onPrevious}
+        onRight={!editing ? onNext : undefined}
+        onLeft={!editing ? onPrevious : undefined}
         onKeyDown={(event) => {
           if ((event.metaKey || event.ctrlKey) && event.key === '.') {
             event.preventDefault();
@@ -230,36 +376,21 @@ const Roadmap = ({ identifier, onClose }) => {
           }
         }}
       >
-        <Swipe
-          fill
-          onSwipeLeft={onNext}
-          onSwipeRight={onPrevious}
-          background={editing ? { color: 'background-contrast' } : undefined}
-          gap="small"
-        >
-          <Header background={{ color: 'background-contrast' }} pad="small">
+        <Swipe fill onSwipeLeft={onNext} onSwipeRight={onPrevious} gap="small">
+          <Header pad="small">
             <Button icon={<Navigate />} onClick={onClose} />
-            <Heading textAlign="center" size="small" margin="none">
-              {editing ? (
-                <Button
-                  size="xlarge"
-                  label={roadmap.name}
-                  onClick={() => setEditRoadmap(true)}
-                />
-              ) : (
-                roadmap.name
-              )}
-            </Heading>
-            {editing ? (
+            <Box direction="row" gap="small">
+              <Name />
+            </Box>
+            {(editing && (
               <Button icon={<Add />} onClick={() => setItemIndex(-1)} />
-            ) : roadmap.notes ? (
-              <Button
-                icon={<CircleInformation />}
-                onClick={() => setShowNotes(!showNotes)}
-              />
-            ) : (
-              <Blank />
-            )}
+            )) ||
+              (roadmap.notes && (
+                <Button
+                  icon={<CircleInformation />}
+                  onClick={() => setShowNotes(!showNotes)}
+                />
+              )) || <Button disabled icon={<Blank />} />}
           </Header>
           <Box flex={false}>
             {showNotes && (
@@ -279,12 +410,7 @@ const Roadmap = ({ identifier, onClose }) => {
             )}
             <Row>
               {months.map((month, index) => (
-                <Box
-                  key={month}
-                  direction="row"
-                  align="center"
-                  justify="between"
-                >
+                <Box key={month} direction="row" align="end" justify="between">
                   {index === 0 ? (
                     <Button
                       icon={<Previous />}
@@ -294,12 +420,14 @@ const Roadmap = ({ identifier, onClose }) => {
                   ) : (
                     <Blank />
                   )}
-                  <Heading level={2} size="small">
-                    {month.toLocaleString(undefined, {
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </Heading>
+                  <Box align="center">
+                    <Text color="text-weak">
+                      {month.toLocaleString(undefined, { year: 'numeric' })}
+                    </Text>
+                    <Heading level={2} size="small" margin="none">
+                      {month.toLocaleString(undefined, { month: 'long' })}
+                    </Heading>
+                  </Box>
                   {index === months.length - 1 ? (
                     <Button icon={<Next />} hoverIndicator onClick={onNext} />
                   ) : (
@@ -318,174 +446,8 @@ const Roadmap = ({ identifier, onClose }) => {
                   </Heading>
                 </Row>
                 <Row>
-                  {months.map(({ month, items }, index) => (
-                    <Box
-                      key={month}
-                      gap="medium"
-                      pad={{ vertical: 'medium', horizontal: 'small' }}
-                      background={
-                        index % 2 === 0
-                          ? 'background-contrast'
-                          : 'background-back'
-                      }
-                      responsive={false}
-                      onDragEnter={(event) => {
-                        if (dragging !== undefined) {
-                          event.preventDefault();
-                          setDropTarget(month);
-                        } else {
-                          setDropTarget(undefined);
-                        }
-                      }}
-                      onDragOver={(event) => {
-                        if (dragging !== undefined) event.preventDefault();
-                      }}
-                      onDrop={moveItem}
-                    >
-                      {items.map(
-                        ({ dateFields, index, linkFields, name, note }) => {
-                          const labels = [];
-                          for (var x in dateFields) {
-                            const stage = dateFields[x].stage;
-                            labels.push(
-                              roadmap.labels.find(({ name }) => name === stage),
-                            );
-                          }
-                          let content = (
-                            <Card
-                              key={name}
-                              draggable={editing}
-                              onDragStart={(event) => {
-                                // for Firefox
-                                event.dataTransfer.setData('text/plain', '');
-                                setDragging(index);
-                                setPrevTarget(month);
-                              }}
-                              onDragEnd={() => {
-                                setDragging(undefined);
-                                setDropTarget(undefined);
-                                setPrevTarget(undefined);
-                              }}
-                              elevation="small"
-                            >
-                              {editing && (
-                                <CardHeader justify="end" pad="none">
-                                  <Button
-                                    icon={<More />}
-                                    onClick={() =>
-                                      editing ? undefined : setItemIndex(index)
-                                    }
-                                  />
-                                </CardHeader>
-                              )}
-                              <CardBody
-                                justify="between"
-                                direction="row"
-                                gap="medium"
-                              >
-                                <Box flex>
-                                  <Heading margin="none" size="small" level={4}>
-                                    {name}
-                                  </Heading>
-                                  {note && (
-                                    <Paragraph
-                                      size="small"
-                                      margin={{ bottom: 'none' }}
-                                    >
-                                      {note}
-                                    </Paragraph>
-                                  )}
-                                </Box>
-                                <Box flex={false} gap="small">
-                                  {linkFields.map((linkField, index) => (
-                                    <Box key={`iconBox${index}`} align="center">
-                                      {linkField.linkUrl &&
-                                        (linkField.linkUrl.includes(
-                                          'figma.com',
-                                        ) ||
-                                        linkField.linkUrl.includes(
-                                          'github.com',
-                                        ) ? (
-                                          linkField.linkUrl.includes(
-                                            'github.com',
-                                          ) ? (
-                                            <Button
-                                              plain
-                                              icon={<Github />}
-                                              href={linkField.linkUrl}
-                                            />
-                                          ) : (
-                                            <Button
-                                              plain
-                                              icon={<Figma color="plain" />}
-                                              href={linkField.linkUrl}
-                                            />
-                                          )
-                                        ) : (
-                                          <Button
-                                            plain
-                                            icon={<Link />}
-                                            href={linkField.linkUrl}
-                                          />
-                                        ))}
-                                    </Box>
-                                  ))}
-                                </Box>
-                              </CardBody>
-                              {dateFields.map((dateField, index) => {
-                                if (sameMonth(month, dateField.date)) {
-                                  return (
-                                    <CardFooter
-                                      pad={{
-                                        vertical: 'small',
-                                        horizontal: 'medium',
-                                      }}
-                                      background={
-                                        labels[index] && labels[index].color
-                                          ? labels[index].color
-                                          : ''
-                                      }
-                                      key={`${index}footer`}
-                                    >
-                                      <Text
-                                        size="small"
-                                        weight="bold"
-                                        key={`${index}stage`}
-                                      >
-                                        {dateField.stage}
-                                      </Text>
-                                      <Text
-                                        size="small"
-                                        weight="bold"
-                                        key={`${index}progress`}
-                                      >
-                                        {dateField.progress}
-                                      </Text>
-                                    </CardFooter>
-                                  );
-                                }
-                                return null;
-                              })}
-                            </Card>
-                          );
-                          if (editing)
-                            content = (
-                              <Button
-                                key={name}
-                                plain
-                                onClick={
-                                  editing
-                                    ? () => setItemIndex(index)
-                                    : undefined
-                                }
-                              >
-                                {content}
-                              </Button>
-                            );
-                          return content;
-                        },
-                      )}
-                    </Box>
+                  {months.map((month) => (
+                    <Month key={month.month} {...month} />
                   ))}
                 </Row>
               </Box>
@@ -510,11 +472,7 @@ const Roadmap = ({ identifier, onClose }) => {
             />
           )}
           {editing && (
-            <Box
-              align="center"
-              pad="xsmall"
-              background={{ color: 'background-front', dark: true }}
-            >
+            <Box align="center" pad="xsmall" background="status-warning">
               <Text size="large">editing</Text>
             </Box>
           )}

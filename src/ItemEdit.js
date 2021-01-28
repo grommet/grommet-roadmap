@@ -14,15 +14,8 @@ import {
 } from 'grommet';
 import { update } from './data';
 import Auth from './Auth';
-import {
-  AddCircle,
-  Close,
-  Figma,
-  FormClose,
-  FormDown,
-  Github,
-  Link,
-} from 'grommet-icons';
+import { Close, FormAdd, FormClose, FormDown } from 'grommet-icons';
+import LinkIcon from './LinkIcon';
 
 const defaultItem = { name: '', section: '' };
 
@@ -166,8 +159,12 @@ const ItemEdit = ({ index, roadmap, onChange, onDone }) => {
 
   return (
     <Layer position="center" onEsc={onDone}>
-      <Box>
-        <Box pad={{ horizontal: 'large', vertical: 'small' }} width="large">
+      <Box overflow="auto">
+        <Box
+          flex={false}
+          pad={{ horizontal: 'large', vertical: 'small' }}
+          width="large"
+        >
           <Header>
             <Heading level={2} size="small">
               {index >= 0 ? 'Edit Task' : 'Create a New Task'}
@@ -215,30 +212,24 @@ const ItemEdit = ({ index, roadmap, onChange, onDone }) => {
                   </FormField>
                   {linkField.linkUrl && (
                     <Box
-                      align="end"
                       margin={{ horizontal: 'small', vertical: 'xsmall' }}
-                      border="all"
+                      border
                       round="xsmall"
+                      pad="xsmall"
                     >
-                      <Box align="center" pad="xsmall">
-                        {linkField.linkUrl.includes('figma.com') ? (
-                          <Figma color="plain" />
-                        ) : linkField.linkUrl.includes('github.com') ? (
-                          <Github />
-                        ) : (
-                          <Link />
-                        )}
-                      </Box>
+                      <LinkIcon url={linkField.linkUrl} />
                     </Box>
                   )}
-                  <Box alignContent="center">
-                    <FormClose onClick={() => handleRemoveUrl(index)} />
-                  </Box>
+                  <Button
+                    icon={<FormClose />}
+                    onClick={() => handleRemoveUrl(index)}
+                  />
                 </Box>
               ))}
-              <Box align="center" onClick={() => handleAddUrl()}>
-                <AddCircle color="border" />
+              <Box alignSelf="center" margin={{ bottom: 'medium' }}>
+                <Button icon={<FormAdd />} onClick={() => handleAddUrl()} />
               </Box>
+
               {dateFields.map((dateField, index) => (
                 <Box
                   direction="row-responsive"
@@ -309,8 +300,11 @@ const ItemEdit = ({ index, roadmap, onChange, onDone }) => {
                   </Box>
                 </Box>
               ))}
-              <Box align="center" onClick={() => handleAddDateField()}>
-                <AddCircle color="border" />
+              <Box alignSelf="center" margin={{ bottom: 'medium' }}>
+                <Button
+                  icon={<FormAdd />}
+                  onClick={() => handleAddDateField()}
+                />
               </Box>
 
               <Footer margin={{ vertical: 'medium' }}>
