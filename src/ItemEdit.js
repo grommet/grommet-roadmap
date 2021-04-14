@@ -139,9 +139,17 @@ const ItemEdit = ({ index, roadmap, onChange, onDone }) => {
 
   const handleSuggestionSelect = (index, event) => {
     const values = [...dateFields];
-    if (event.target.name && event.target.name.includes('Stage')) {
+    if (
+      event.target.innerText &&
+      roadmap.labels.map((label) => label.name).includes(event.target.innerText)
+    ) {
       values[index].stage = event.suggestion;
-    } else if (event.target.name && event.target.name.includes('Progress')) {
+    } else if (
+      event.target.innerText &&
+      ['Not Started', 'In Progress', 'Complete'].includes(
+        event.target.innerText,
+      )
+    ) {
       values[index].progress = event.suggestion;
     }
     setDateFields(values);
