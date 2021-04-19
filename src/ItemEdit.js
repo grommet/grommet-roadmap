@@ -137,11 +137,11 @@ const ItemEdit = ({ index, roadmap, onChange, onDone }) => {
     setDateFields(values);
   };
 
-  const handleSuggestionSelect = (index, event) => {
+  const handleSuggestionSelect = (index, name, event) => {
     const values = [...dateFields];
-    if (event.target.name && event.target.name.includes('Stage')) {
+    if (name && name.includes('Stage')) {
       values[index].stage = event.suggestion;
-    } else if (event.target.name && event.target.name.includes('Progress')) {
+    } else if (name && name.includes('Progress')) {
       values[index].progress = event.suggestion;
     }
     setDateFields(values);
@@ -263,7 +263,11 @@ const ItemEdit = ({ index, roadmap, onChange, onDone }) => {
                         handleAdditionalInputChange(index, event)
                       }
                       onSuggestionSelect={(event) =>
-                        handleSuggestionSelect(index, event)
+                        handleSuggestionSelect(
+                          index,
+                          `${index}DateStage`,
+                          event,
+                        )
                       }
                       name={`${index}DateStage`}
                       htmlFor={`${index}DateStage`}
@@ -284,7 +288,11 @@ const ItemEdit = ({ index, roadmap, onChange, onDone }) => {
                         handleAdditionalInputChange(index, event)
                       }
                       onSuggestionSelect={(event) =>
-                        handleSuggestionSelect(index, event)
+                        handleSuggestionSelect(
+                          index,
+                          `${index}DateProgress`,
+                          event,
+                        )
                       }
                       icon={<FormDown />}
                       reverse
